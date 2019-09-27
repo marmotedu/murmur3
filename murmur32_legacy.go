@@ -9,48 +9,48 @@ import (
 
 // Make sure interfaces are correctly implemented.
 var (
-	_ hash.Hash   = new(digest32)
-	_ hash.Hash32 = new(digest32)
+	_ hash.Hash   = new(digest32legacy)
+	_ hash.Hash32 = new(digest32legacy)
 )
 
 const (
-	c1_32 uint32 = 0xcc9e2d51
-	c2_32 uint32 = 0x1b873593
+	c1_32_legacy uint32 = 0xcc9e2d51
+	c2_32_legacy uint32 = 0x1b873593
 )
 
 // digest32 represents a partial evaluation of a 32 bites hash.
-type digest32 struct {
+type digest32legacy struct {
 	digest
 	h1 uint32 // Unfinalized running hash.
 }
 
-func New32() hash.Hash32 {
-	d := new(digest32)
+func New32Legacy() hash.Hash32 {
+	d := new(digest32legacy)
 	d.bmixer = d
 	d.Reset()
 	return d
 }
 
-func (d *digest32) Size() int { return 4 }
+func (d *digest32legacy) Size() int { return 4 }
 
-func (d *digest32) reset() { d.h1 = 0 }
+func (d *digest32legacy) reset() { d.h1 = 0 }
 
-func (d *digest32) Sum(b []byte) []byte {
+func (d *digest32legacy) Sum(b []byte) []byte {
 	h := d.h1
 	return append(b, byte(h>>24), byte(h>>16), byte(h>>8), byte(h))
 }
 
 // Digest as many blocks as possible.
-func (d *digest32) bmix(p []byte) (tail []byte) {
+func (d *digest32legacy) bmix(p []byte) (tail []byte) {
 	h1 := d.h1
 
 	nblocks := len(p) / 4
 	for i := 0; i < nblocks; i++ {
 		k1 := *(*uint32)(unsafe.Pointer(&p[i*4]))
 
-		k1 *= c1_32
+		k1 *= c1_32_legacy
 		k1 = (k1 << 15) | (k1 >> 17) // rotl32(k1, 15)
-		k1 *= c2_32
+		k1 *= c2_32_legacy
 
 		h1 ^= k1
 		h1 = (h1 << 13) | (h1 >> 19) // rotl32(h1, 13)
@@ -60,7 +60,7 @@ func (d *digest32) bmix(p []byte) (tail []byte) {
 	return p[nblocks*d.Size():]
 }
 
-func (d *digest32) Sum32() (h1 uint32) {
+func (d *digest32legacy) Sum32() (h1 uint32) {
 
 	h1 = d.h1
 
@@ -74,9 +74,9 @@ func (d *digest32) Sum32() (h1 uint32) {
 		fallthrough
 	case 1:
 		k1 ^= uint32(d.tail[0])
-		k1 *= c1_32
+		k1 *= c1_32_legacy
 		k1 = (k1 << 15) | (k1 >> 17) // rotl32(k1, 15)
-		k1 *= c2_32
+		k1 *= c2_32_legacy
 		h1 ^= k1
 	}
 
@@ -102,7 +102,7 @@ func rotl32(x uint32, r byte) uint32 {
 //     hasher := New32()
 //     hasher.Write(data)
 //     return hasher.Sum32()
-func Sum32(data []byte) uint32 {
+func Sum32Legacy(data []byte) uint32 {
 
 	var h1 uint32 = 0
 
@@ -115,9 +115,9 @@ func Sum32(data []byte) uint32 {
 	for ; p < p1; p += 4 {
 		k1 := *(*uint32)(unsafe.Pointer(p))
 
-		k1 *= c1_32
+		k1 *= c1_32_legacy
 		k1 = (k1 << 15) | (k1 >> 17) // rotl32(k1, 15)
-		k1 *= c2_32
+		k1 *= c2_32_legacy
 
 		h1 ^= k1
 		h1 = (h1 << 13) | (h1 >> 19) // rotl32(h1, 13)
@@ -136,9 +136,9 @@ func Sum32(data []byte) uint32 {
 		fallthrough
 	case 1:
 		k1 ^= uint32(tail[0])
-		k1 *= c1_32
+		k1 *= c1_32_legacy
 		k1 = (k1 << 15) | (k1 >> 17) // rotl32(k1, 15)
-		k1 *= c2_32
+		k1 *= c2_32_legacy
 		h1 ^= k1
 	}
 
