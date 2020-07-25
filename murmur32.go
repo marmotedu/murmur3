@@ -110,6 +110,8 @@ func Sum32(data []byte) uint32 { return Sum32WithSeed(data, 0) }
 //     hasher := New32WithSeed(seed)
 //     hasher.Write(data)
 //     return hasher.Sum32()
+// Disable new -d=checkptr behaviour for Go 1.14
+//go:nocheckptr
 func Sum32WithSeed(data []byte, seed uint32) uint32 {
 
 	h1 := seed
